@@ -1,0 +1,5 @@
+ResourceGroup,VNetResourceGroup,VNetName,Subnet,PrivateIp,VMName,VMOS,VMSize,Location,UserName,Password,StorageAccountName,AvailabilitySet,NetworkSecurityGroup
+cjivmrg,cjivmrg,cjivnet1,subnet1-1,10.0.0.4,cjivm1,Linux,Standard_DS2_v2,chinaeast2,usercji,passwd@Cji126,cjidiag,cjiavset1,cjinsg1
+cjivmrg,cjivmrg,cjivnet1,subnet1-1,10.0.0.5,cjivm2,Linux,Standard_DS2_v2,chinaeast2,usercji,passwd@Cji126,cjidiag,cjiavset1,cjinsg1
+cjivmrg,cjivnetrg,cjivnet2,subnet2-1,10.2.0.4,cjivm3,Windows,Standard_DS2_v2,chinaeast2,usercji,passwd@Cji126,cjidiag,cjiavset2,cjinsg2
+cjivmrg,cjivnetrg,cjivnet2,subnet2-1,10.2.0.5,cjivm4,Windows,Standard_DS2_v2,chinaeast2,usercji,passwd@Cji126,cjidiag,cjiavset2,cjinsg2
