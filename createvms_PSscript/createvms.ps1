@@ -21,10 +21,10 @@ $credential = New-Object -TypeName "System.Management.Automation.PSCredential" -
 #可选参数
 $storageName = $_.StorageAccountName
 $availabilitySetName = $_.availabilitySet
-$networkSecurityGroup = $_.NetworkSecurityGroup
+$networkSecurityGroupName = $_.NetworkSecurityGroup
 #$publicIp = $_.PublicIp
-#$imageResourceGroup = $_.imageresourceGroup
-#$imageName = $_.imageName 
+$imageResourceGroup = $_.imageresourceGroup
+$imageName = $_.imageName 
 
 $nicName = $VMName + 'nic'
 
@@ -36,11 +36,10 @@ $vnet = Get-Azvirtualnetwork -name $vNetName -resourcegroupname $vNetResourceGro
 $subnet = Get-AzVirtualNetworkSubnetConfig -Name $subnetName -virtualnetwork $vnet
 
 #获取或创建网络安全组
-$nsg = Get-AzNetworkSecurityGroup -ResourceGroupName $resourceGroup -Name $networkSecurityGroup -ErrorAction Ignore
+$nsg = Get-AzNetworkSecurityGroup -ResourceGroupName $resourceGroup -Name $networkSecurityGroupName -ErrorAction Ignore
 if($nsg -eq $null)
 {
-    $nsgname = $VMName + 'nsg'
-    $nsg = New-AzNetworkSecurityGroup -ResourceGroupName $resourceGroup -Location $location -Name $nsgname
+    $nsg = New-AzNetworkSecurityGroup -ResourceGroupName $resourceGroup -Location $location -Name $networkSecurityGroupName
 }
 
 #创建网络接口
@@ -54,58 +53,42 @@ if($aset -eq $null)
     $aset = New-AzAvailabilityset -ResourceGroupName $resourceGroup -Name $availabilitySetName -Location $location -sku aligned -PlatformFaultDomainCount 2 -PlatformUpdateDomainCount 3
 }
 
-#获取镜像文件信息
-#$image = Get-AzImage -ImageName $imageName -ResourceGroupName $imageResourceGroup
-
-#创建虚拟机配置
+#创建虚拟机及磁盘配置
 $vm = New-AzVMConfig -vmName $VMName -vmSize $VMSize -availabilitysetid $aset.id
-if($OSType -eq "windows")
+$osDiskName = $VMName + 'osdisk'
+if ($OSType -eq "linuximage") 
 {
-    #Windows系统镜像配置
-    $vm = Set-AzVMSourceImage -VM $vm -publishername microsoftwindowsserver -offer windowsserver -skus 2012-r2-datacenter -version "latest"
+    $image = Get-AzImage -ImageName $imageName -ResourceGroupName $imageResourceGroup
+    $vm = Set-AzVMSourceImage -VM $vm -Id $image.Id
+    $vm = Set-AzVMOperatingSystem -VM $vm -Linux -ComputerName $VMName -Credential $credential
+    $vm = Set-AzVMOSDisk -VM $vm -Name $osDiskName -StorageAccountType Premium_LRS -DiskSizeInGB 50 -CreateOption FromImage
+
 }
-elseif($OSType -eq "linux")
+elseif ($OSType -eq "winserver2008r2")
 {
-    #Linux系统镜像配置
-    $vm = Set-AzVMSourceImage -VM $vm -PublisherName "openlogic" -Offer "centos" -Skus "7.5" -version "latest"
+    $vm = Set-AzVMSourceImage -VM $vm -publishername "microsoftwindowsserver" -offer "windowsserver" -skus "2008-R2-SP1-zhcn" -version "latest"
+    $vm = Set-AzVMOperatingSystem -VM $vm -Windows -ComputerName $VMName -Credential $credential
+    $vm = Set-AzVMOSDisk -VM $vm -Name $osDiskName -StorageAccountType Premium_LRS -DiskSizeInGB 120 -CreateOption FromImage
+}
+elseif ($OSType -eq "winserver2012r2")
+{
+    $vm = Set-AzVMSourceImage -VM $vm -publishername "microsoftwindowsserver" -offer "windowsserver" -skus "2012-R2-Datacenter-zhcn" -version "latest"
+    $vm = Set-AzVMOperatingSystem -VM $vm -Windows -ComputerName $VMName -Credential $credential
+    $vm = Set-AzVMOSDisk -VM $vm -Name $osDiskName -StorageAccountType Premium_LRS -DiskSizeInGB 120 -CreateOption FromImage
 }
 
-#$vm = Set-AzVMSourceImage -VM $vm -Id $image.Id
-
-$computerName = $VMName
-if($OSType -eq "windows")
-{
-    $vm = Set-AzVMOperatingSystem -VM $vm -Windows -ComputerName $computerName -Credential $credential
-}
-elseif($OSType -eq "linux")
-{
-    $vm = Set-AzVMOperatingSystem -VM $vm -Linux -ComputerName $computerName -Credential $credential
-}
-
+#为虚拟机绑定网络接口
 $vm = Add-AzVMNetworkinterface -VM $vm -ID $nic.id
 
-#创建系统磁盘配置
-#$storageaccount = get-Azstorageaccount -resourcegroupname $resourceGroup -accountname $storagename
-#$disk = Get-AzDisk -ResourceGroupName $resourceGroup -DiskName $diskName
-#$osdiskuri = $storageacc.primaryendpoints.blob.tostring()+"vhds/"+$osDiskName+".vhd"
-$osDiskName = $VMName + 'osdisk'
-if($OSType -eq "windows")
-{
-    Set-AzVMOSDisk -VM $vm -Name $osDiskName -StorageAccountType Premium_LRS -DiskSizeInGB 128 -CreateOption FromImage
-}
-elseif($OSType -eq "linux")
-{
-    Set-AzVMOSDisk -VM $vm -Name $osDiskName -StorageAccountType Premium_LRS -DiskSizeInGB 30 -CreateOption FromImage
-}
-
-#创建诊断配置
+#创建启动诊断配置
 $dsa = Get-AzStorageAccount -ResourceGroupName $resourceGroup -Name $storageName -ErrorAction Ignore
-if($dsa -eq $null)
+if($null -eq $dsa)
 {
     $dsa = New-AzStorageAccount -ResourceGroupName $resourceGroup -Name $storageName -Location $location -SkuName Standard_LRS
 }
-Set-AzVMBootDiagnostics -VM $vm -Enable -ResourceGroupName $resourceGroup -StorageAccountName $dsa.StorageAccountName
+$vm = Set-AzVMBootDiagnostics -VM $vm -Enable -ResourceGroupName $resourceGroup -StorageAccountName $dsa.StorageAccountName
 
-#创建虚拟机
-New-AzVM -VM $vm -resourcegroupname $resourceGroup -location $location
+#部署虚拟机
+New-AzVM -VM $vm -ResourceGroupName $resourceGroup -Location $location
+Get-AzVM -ResourceGroupName $resourceGroup -Name $VMName
 }
