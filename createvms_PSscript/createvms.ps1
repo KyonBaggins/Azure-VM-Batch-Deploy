@@ -68,13 +68,13 @@ elseif ($OSType -eq "winserver2008r2")
 {
     $vm = Set-AzVMSourceImage -VM $vm -publishername "microsoftwindowsserver" -offer "windowsserver" -skus "2008-R2-SP1-zhcn" -version "latest"
     $vm = Set-AzVMOperatingSystem -VM $vm -Windows -ComputerName $VMName -Credential $credential
-    $vm = Set-AzVMOSDisk -VM $vm -Name $osDiskName -StorageAccountType Premium_LRS -DiskSizeInGB 120 -CreateOption FromImage
+    $vm = Set-AzVMOSDisk -VM $vm -Name $osDiskName -StorageAccountType Premium_LRS -DiskSizeInGB 127 -CreateOption FromImage
 }
 elseif ($OSType -eq "winserver2012r2")
 {
     $vm = Set-AzVMSourceImage -VM $vm -publishername "microsoftwindowsserver" -offer "windowsserver" -skus "2012-R2-Datacenter-zhcn" -version "latest"
     $vm = Set-AzVMOperatingSystem -VM $vm -Windows -ComputerName $VMName -Credential $credential
-    $vm = Set-AzVMOSDisk -VM $vm -Name $osDiskName -StorageAccountType Premium_LRS -DiskSizeInGB 120 -CreateOption FromImage
+    $vm = Set-AzVMOSDisk -VM $vm -Name $osDiskName -StorageAccountType Premium_LRS -DiskSizeInGB 127 -CreateOption FromImage
 }
 
 #为虚拟机绑定网络接口
@@ -88,7 +88,7 @@ if($null -eq $dsa)
 }
 $vm = Set-AzVMBootDiagnostics -VM $vm -Enable -ResourceGroupName $resourceGroup -StorageAccountName $dsa.StorageAccountName
 
-#部署虚拟机
+#部署虚拟机并返回相关信息
 New-AzVM -VM $vm -ResourceGroupName $resourceGroup -Location $location
 Get-AzVM -ResourceGroupName $resourceGroup -Name $VMName
 }
