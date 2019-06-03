@@ -1,5 +1,4 @@
-ResourceGroup,VNetResourceGroup,VNetName,Subnet,PrivateIp,VMName,VMOS,VMSize,Location,UserName,Password,StorageAccountName,AvailabilitySet,NetworkSecurityGroup
-cjivmrg,cjivmrg,cjivnet1,subnet1-1,10.0.0.4,cjivm1,Linux,Standard_DS2_v2,chinaeast2,usercji,passwd@Cji126,cjidiag,cjiavset1,cjinsg1
-cjivmrg,cjivmrg,cjivnet1,subnet1-1,10.0.0.5,cjivm2,Linux,Standard_DS2_v2,chinaeast2,usercji,passwd@Cji126,cjidiag,cjiavset1,cjinsg1
-cjivmrg,cjivnetrg,cjivnet2,subnet2-1,10.2.0.4,cjivm3,Windows,Standard_DS2_v2,chinaeast2,usercji,passwd@Cji126,cjidiag,cjiavset2,cjinsg2
-cjivmrg,cjivnetrg,cjivnet2,subnet2-1,10.2.0.5,cjivm4,Windows,Standard_DS2_v2,chinaeast2,usercji,passwd@Cji126,cjidiag,cjiavset2,cjinsg2
+ResourceGroup,VNetResourceGroup,VNetName,Subnet,PrivateIp,VMName,VMOS,VMSize,Location,imageresourceGroup,imageName,UserName,Password,StorageAccountName,AvailabilitySet,NetworkSecurityGroup
+cji,cji,cjivnet,subnet1,10.1.1.4,cjivm1,winserver2008r2,Standard_D2s_v3,chinaeast2,,,usercji,passwd@Uc126,cjisa,cjiavset,cjinsg
+cji,cji,cjivnet,subnet1,10.1.1.5,cjivm2,winserver2012r2,Standard_D2s_v3,chinaeast2,,,usercji,passwd@Uc126,cjisa,cjiavset,cjinsg
+cji,cji,cjivnet,subnet1,10.1.1.6,cjivm3,linuximage,Standard_D2s_v3,chinaeast2,cji,linuximage-image-20190603093942,usercji,passwd@Uc126,cjisa,cjiavset,cjinsg

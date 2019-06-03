@@ -62,7 +62,6 @@ if ($OSType -eq "linuximage")
     $vm = Set-AzVMSourceImage -VM $vm -Id $image.Id
     $vm = Set-AzVMOperatingSystem -VM $vm -Linux -ComputerName $VMName -Credential $credential
     $vm = Set-AzVMOSDisk -VM $vm -Name $osDiskName -StorageAccountType Premium_LRS -DiskSizeInGB 50 -CreateOption FromImage
-
 }
 elseif ($OSType -eq "winserver2008r2")
 {
@@ -88,7 +87,17 @@ if($null -eq $dsa)
 }
 $vm = Set-AzVMBootDiagnostics -VM $vm -Enable -ResourceGroupName $resourceGroup -StorageAccountName $dsa.StorageAccountName
 
-#部署虚拟机并返回相关信息
-New-AzVM -VM $vm -ResourceGroupName $resourceGroup -Location $location
-Get-AzVM -ResourceGroupName $resourceGroup -Name $VMName
+#部署虚拟机并返回结果相关信息
+$rst = New-AzVM -VM $vm -ResourceGroupName $resourceGroup -Location $location
+if ($rst.IsSuccessStatusCode -eq $true) 
+{
+    $vminfo = Get-AzVM -ResourceGroupName $resourceGroup -Name $VMName
+    Write-Host "VM deploy successed! INFO:"
+    $vminfo | Select-Object Name,ResourceGroupName,Location,
+        @{Name="AvailabilitySet";Expression={$_.AvailabilitySetReference.Id.split("/")[8]}},
+        @{Name="BootDiagnosticsStorageUri";Expression={$_.DiagnosticsProfile.BootDiagnostics.StorageUri}},
+        @{Name="VmSize";Expression={$_.HardwareProfile.VmSize}},
+        @{Name="OSType";Expression={$_.StorageProfile.OsDisk.OSType}},
+        @{Name="OSDiskSizeGB";Expression={$_.StorageProfile.OsDisk.DiskSizeGB}}
+}
 }
